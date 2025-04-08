@@ -170,6 +170,7 @@ if (!dir.exists(custom_piecharts_dir)) {
 # Set up genome and annotation
 cat("Loading TxDb annotation database...\n")
 txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
+output_grid_plot <- FALSE
 
 #' @title Process Peak File
 #' @description Process a narrowPeak file and perform genomic annotation
@@ -353,15 +354,17 @@ n_samples <- length(anno_list)
 n_cols <- min(3, n_samples)
 n_rows <- ceiling(n_samples / n_cols)
 
-tryCatch({
-    pdf(file.path(figures_dir, "multi_sample_pie_charts_grid_with_percentages.pdf"), 
-        width = 3*n_cols + 4, height = 4*n_rows + 4)
-    do.call(gridExtra::grid.arrange, c(pie_charts, ncol = n_cols, 
-                                       top = "Genomic Distribution Across Samples"))
-    dev.off()
-}, error = function(e) {
-    cat("Note: Could not create grid layout with grid.arrange:", e$message, "\n")
-})
+if (output_grid_plot) {
+    tryCatch({
+        pdf(file.path(figures_dir, "multi_sample_pie_charts_grid_with_percentages.pdf"),
+            width = 3*n_cols + 4, height = 4*n_rows + 4)
+        do.call(gridExtra::grid.arrange, c(pie_charts, ncol = n_cols,
+                                          top = "Genomic Distribution Across Samples"))
+        dev.off()
+    }, error = function(e) {
+        cat("Note: Could not create grid layout with grid.arrange:", e$message, "\n")
+    })
+}
 
 # Create individual pie chart files
 tryCatch({
@@ -580,122 +583,125 @@ tryCatch({
 
 # Create faceted pie chart visualization
 cat("Creating faceted pie chart visualization...\n")
-tryCatch({
-    n_samples <- length(unique(combined_stats$Sample))
-    
-    if (n_samples <= 4) {
-        n_rows <- 1
-        n_cols <- n_samples
-        strip_size <- 12
-        pdf_width <- 10
-        pdf_height <- 6
-    } else if (n_samples <= 12) {
-        n_rows <- 2
-        n_cols <- ceiling(n_samples / n_rows)
-        strip_size <- 10
-        pdf_width <- min(16, 3 * n_cols)
-        pdf_height <- 8
-    } else if (n_samples <= 24) {
-        n_rows <- 3
-        n_cols <- ceiling(n_samples / n_rows)
-        strip_size <- 8
-        pdf_width <- min(20, 2.5 * n_cols)
-        pdf_height <- 10
-    } else {
-        n_rows <- 4
-        n_cols <- 6
-        samples_per_page <- n_rows * n_cols
-        strip_size <- 7
-        pdf_width <- 16
-        pdf_height <- 12
-    }
-    
-    pie_theme <- theme_minimal() +
-        theme(
-            axis.title = element_blank(),
-            axis.text = element_blank(),
-            axis.ticks = element_blank(),
-            panel.grid = element_blank(),
-            strip.text = element_text(size = strip_size),
-            panel.spacing = unit(0.5, "lines"),
-            legend.position = "bottom",
-            legend.title = element_blank(),
-            legend.text = element_text(size = 8),
-            plot.title = element_text(hjust = 0.5)
-        )
-    
-    if (n_samples <= 24) {
-        p_facet <- ggplot(combined_stats, aes(x = "", y = Frequency, fill = Feature)) +
-            geom_bar(stat = "identity", width = 1, color = "white") +
-            coord_polar("y", start = 0) +
-            facet_wrap(~ Sample, nrow = n_rows) +
-            pie_theme +
-            labs(title = "Genomic Distribution Across Samples") +
-            scale_fill_manual(values = feature_colors)
+
+if (output_grid_plot) {
+    tryCatch({
+        n_samples <- length(unique(combined_stats$Sample))
         
-        ggsave(file.path(figures_dir, "faceted_pie_charts.pdf"), 
-               p_facet, width = pdf_width, height = pdf_height)
-    } else {
-        all_samples <- unique(combined_stats$Sample)
-        num_pages <- ceiling(n_samples / samples_per_page)
+        if (n_samples <= 4) {
+            n_rows <- 1
+            n_cols <- n_samples
+            strip_size <- 12
+            pdf_width <- 10
+            pdf_height <- 6
+        } else if (n_samples <= 12) {
+            n_rows <- 2
+            n_cols <- ceiling(n_samples / n_rows)
+            strip_size <- 10
+            pdf_width <- min(16, 3 * n_cols)
+            pdf_height <- 8
+        } else if (n_samples <= 24) {
+            n_rows <- 3
+            n_cols <- ceiling(n_samples / n_rows)
+            strip_size <- 8
+            pdf_width <- min(20, 2.5 * n_cols)
+            pdf_height <- 10
+        } else {
+            n_rows <- 4
+            n_cols <- 6
+            samples_per_page <- n_rows * n_cols
+            strip_size <- 7
+            pdf_width <- 16
+            pdf_height <- 12
+        }
         
-        pdf(file.path(figures_dir, "faceted_pie_charts.pdf"), 
-            width = pdf_width, height = pdf_height)
+        pie_theme <- theme_minimal() +
+            theme(
+                axis.title = element_blank(),
+                axis.text = element_blank(),
+                axis.ticks = element_blank(),
+                panel.grid = element_blank(),
+                strip.text = element_text(size = strip_size),
+                panel.spacing = unit(0.5, "lines"),
+                legend.position = "bottom",
+                legend.title = element_blank(),
+                legend.text = element_text(size = 8),
+                plot.title = element_text(hjust = 0.5)
+            )
         
-        for (page in 1:num_pages) {
-            start_idx <- (page-1) * samples_per_page + 1
-            end_idx <- min(page * samples_per_page, n_samples)
-            page_samples <- all_samples[start_idx:end_idx]
-            
-            page_data <- combined_stats %>% filter(Sample %in% page_samples)
-            
-            p_page <- ggplot(page_data, aes(x = "", y = Frequency, fill = Feature)) +
+        if (n_samples <= 24) {
+            p_facet <- ggplot(combined_stats, aes(x = "", y = Frequency, fill = Feature)) +
                 geom_bar(stat = "identity", width = 1, color = "white") +
                 coord_polar("y", start = 0) +
                 facet_wrap(~ Sample, nrow = n_rows) +
                 pie_theme +
-                labs(title = paste0("Genomic Distribution - Page ", page, " of ", num_pages)) +
+                labs(title = "Genomic Distribution Across Samples") +
                 scale_fill_manual(values = feature_colors)
             
-            print(p_page)
+            ggsave(file.path(figures_dir, "faceted_pie_charts.pdf"), 
+                   p_facet, width = pdf_width, height = pdf_height)
+        } else {
+            all_samples <- unique(combined_stats$Sample)
+            num_pages <- ceiling(n_samples / samples_per_page)
+            
+            pdf(file.path(figures_dir, "faceted_pie_charts.pdf"), 
+                width = pdf_width, height = pdf_height)
+            
+            for (page in 1:num_pages) {
+                start_idx <- (page-1) * samples_per_page + 1
+                end_idx <- min(page * samples_per_page, n_samples)
+                page_samples <- all_samples[start_idx:end_idx]
+                
+                page_data <- combined_stats %>% filter(Sample %in% page_samples)
+                
+                p_page <- ggplot(page_data, aes(x = "", y = Frequency, fill = Feature)) +
+                    geom_bar(stat = "identity", width = 1, color = "white") +
+                    coord_polar("y", start = 0) +
+                    facet_wrap(~ Sample, nrow = n_rows) +
+                    pie_theme +
+                    labs(title = paste0("Genomic Distribution - Page ", page, " of ", num_pages)) +
+                    scale_fill_manual(values = feature_colors)
+                
+                print(p_page)
+            }
+            
+            dev.off()
+            
+            # Create compact overview
+            if (n_samples > 50) {
+                cat("Creating compact overview of all samples...\n")
+                overview_rows <- ceiling(sqrt(n_samples))
+                overview_cols <- ceiling(n_samples / overview_rows)
+                
+                p_overview <- ggplot(combined_stats, aes(x = "", y = Frequency, fill = Feature)) +
+                    geom_bar(stat = "identity", width = 1, color = "white") +
+                    coord_polar("y", start = 0) +
+                    facet_wrap(~ Sample, nrow = overview_rows) +
+                    theme_minimal() +
+                    theme(
+                        axis.title = element_blank(),
+                        axis.text = element_blank(),
+                        axis.ticks = element_blank(),
+                        panel.grid = element_blank(),
+                        strip.text = element_text(size = 6),
+                        panel.spacing = unit(0.2, "lines"),
+                        legend.position = "bottom",
+                        legend.title = element_blank(),
+                        legend.text = element_text(size = 7),
+                        plot.title = element_text(hjust = 0.5, size = 10)
+                    ) +
+                    labs(title = "Genomic Distribution - Overview of All Samples") +
+                    scale_fill_manual(values = feature_colors)
+                
+                ggsave(file.path(figures_dir, "faceted_pie_charts_overview.pdf"), 
+                   p_overview, width = 16, height = 16, limitsize = FALSE)
+            }
         }
         
-        dev.off()
-        
-        # Create compact overview
-        if (n_samples > 50) {
-            cat("Creating compact overview of all samples...\n")
-            overview_rows <- ceiling(sqrt(n_samples))
-            overview_cols <- ceiling(n_samples / overview_rows)
-            
-            p_overview <- ggplot(combined_stats, aes(x = "", y = Frequency, fill = Feature)) +
-                geom_bar(stat = "identity", width = 1, color = "white") +
-                coord_polar("y", start = 0) +
-                facet_wrap(~ Sample, nrow = overview_rows) +
-                theme_minimal() +
-                theme(
-                    axis.title = element_blank(),
-                    axis.text = element_blank(),
-                    axis.ticks = element_blank(),
-                    panel.grid = element_blank(),
-                    strip.text = element_text(size = 6),
-                    panel.spacing = unit(0.2, "lines"),
-                    legend.position = "bottom",
-                    legend.title = element_blank(),
-                    legend.text = element_text(size = 7),
-                    plot.title = element_text(hjust = 0.5, size = 10)
-                ) +
-                labs(title = "Genomic Distribution - Overview of All Samples") +
-                scale_fill_manual(values = feature_colors)
-            
-            ggsave(file.path(figures_dir, "faceted_pie_charts_overview.pdf"), 
-               p_overview, width = 16, height = 16, limitsize = FALSE)
-        }
-    }
-    
-}, error = function(e) {
-    cat("Note: Could not create faceted pie chart:", e$message, "\n")
-})
+    }, error = function(e) {
+        cat("Note: Could not create faceted pie chart:", e$message, "\n")
+    })
+}
 
 # Calculate script execution time
 script_end_time <- Sys.time()
