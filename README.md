@@ -99,7 +99,6 @@ This command:
 | `--donut_threshold` | Number of samples at which to switch from donut to bar plot | 20 |
 | `--force_donut` | Force donut plots for all sample counts | FALSE |
 | `--force_barplot` | Force creation of bar plot regardless of other settings | FALSE |
-| `--create_tss_plot` | Create TSS distribution plot | TRUE |
 | `--help` | Show help message | |
 
 ## Examples
