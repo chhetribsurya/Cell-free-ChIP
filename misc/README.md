@@ -1,7 +1,5 @@
 # 			Genomic Annotation Tool
 
-​											
-
 ## Overview
 
 This doc explains the usage of Genomic Annotation Tool for analyzing cf-ChIP-seq narrowPeak files. The tool performs genomic feature annotation and creates visualizations to help understand the distribution of peaks across genomic features.
@@ -98,10 +96,6 @@ This command:
 | `--sample_regex` | Regex to extract sample name from filename | "^(.*?)_peaks\\.narrowPeak$" |
 | `--show_percentages` | Show percentages in pie charts | TRUE |
 | `--save_default_piechart` | Save default ChIPseeker pie charts | TRUE |
-| `--donut_threshold` | Number of samples at which to switch from donut to bar plot | 20 |
-| `--force_donut` | Force donut plots for all sample counts | FALSE |
-| `--force_barplot` | Force creation of bar plot regardless of other settings | FALSE |
-| `--create_tss_plot` | Create TSS distribution plot | TRUE |
 | `--help` | Show help message | |
 
 ## Examples
@@ -164,12 +158,10 @@ output_dir/
 ### 1. Bar Plot
 - **File**: `figures/combined_genomic_distribution_bar.pdf`
 - **Description**: Comparison of genomic feature distributions across all samples in a grouped bar chart.
-- **Forced Bar Plot**: When `--force_barplot TRUE` is used, creates `figures/forced_genomic_distribution_barplot.pdf`
 
 ### 2. TSS Profile
 - **File**: `figures/combined_TSS_distribution.pdf`
 - **Description**: Peak distribution frequency relative to transcription start sites for all samples.
-- **Control**: Can be enabled/disabled with `--create_tss_plot` parameter
 
 ### 3. Pie Charts
 - **Files**: 
@@ -191,10 +183,6 @@ The script is designed to handle a wide range of sample counts:
 - For medium sets (10-30 samples): Adjusts layout and font sizes
 - For large sets (30+ samples): Creates multi-page versions and overview visualizations
 - For very large sets (100+ samples): Creates additional compact overview charts
-- **Donut/Bar Threshold**: By default, switches from donut to bar plot at 20 samples (configurable with `--donut_threshold`)
-- **Force Options**: 
-  - Use `--force_donut TRUE` to always create donut charts
-  - Use `--force_barplot TRUE` to always create bar plots
 
 ## Notes for Best Results
 
@@ -205,12 +193,6 @@ The script is designed to handle a wide range of sample counts:
 3. **Execution Time**: Processing time increases with the number of samples. For large datasets, the script displays progress information.
 
 4. **Output Quality**: All visualizations are saved as PDF files for high-resolution output.
-
-5. **Visualization Control**: 
-   - Use `--force_barplot TRUE` to ensure bar plot creation
-   - Use `--force_donut TRUE` to force donut charts even for large sample sets
-   - Adjust `--donut_threshold` to control when the script switches from donut to bar plots
-   - Use `--create_tss_plot FALSE` to disable TSS distribution plot creation
 
 ## Troubleshooting
 
