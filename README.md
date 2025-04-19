@@ -1,7 +1,5 @@
 # 			Genomic Annotation Tool
 
-​											
-
 ## Overview
 
 This doc explains the usage of Genomic Annotation Tool for analyzing cf-ChIP-seq narrowPeak files. The tool performs genomic feature annotation and creates visualizations to help understand the distribution of peaks across genomic features.
