@@ -208,7 +208,6 @@ The script is designed to handle a wide range of sample counts:
    - Use `--force_barplot TRUE` to ensure bar plot creation
    - Use `--force_donut TRUE` to force donut charts even for large sample sets
    - Adjust `--donut_threshold` to control when the script switches from donut to bar plots
-   - Use `--create_tss_plot FALSE` to disable TSS distribution plot creation
 
 ## Troubleshooting
 
