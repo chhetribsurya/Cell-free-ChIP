@@ -73,7 +73,7 @@ Rscript genomic_annotation.R \
   --sample_regex "^(.*?)_peaks\.narrowPeak$" \
   --show_percentages TRUE \
   --save_default_piechart TRUE
-  --donut_threshold 0
+  --donut_threshold 1
 ```
 
 This command:
